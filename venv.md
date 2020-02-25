@@ -3,3 +3,4 @@
 > source venv/bin/activate
 > deactivate
 > pip install Flask-RESTful
+> pip install Flask-JWT
