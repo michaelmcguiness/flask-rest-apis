@@ -1,13 +1,20 @@
-import sqlite3
-
 # this class is a helper that we use to store some data of the user
 # and has methods that allow us to easily retrieve user objects from database
 # a model is an internal representation of an entity
 # whereas a resource is an external representation of an entity
 # models give us more functionality without polluting the resource
 
+import sqlite3
+from db import db
 
-class UserModel:
+
+class UserModel(db.Model):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80))
+    password = db.Column(db.String(80))
+
     def __init__(self, _id, username, password):
         self.id = _id
         self.username = username
