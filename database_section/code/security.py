@@ -10,5 +10,6 @@ def authenticate(username, password):
 
 
 def identity(payload):
+    # 'identity' should be wht you returned in the authenticate func
     user_id = payload['identity']
     return User.find_by_id(user_id)
