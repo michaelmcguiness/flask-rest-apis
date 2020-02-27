@@ -8,7 +8,7 @@ class Item(Resource):
     parser.add_argument('price', type=float, required=True,
                         help="This field cannot be left blank!")
     parser.add_argument('store_id', type=int, required=True,
-                        help="Every item needs a store id")
+                        help="Every item needs a store_id")
 
     @jwt_required()
     def get(self, name):
@@ -22,7 +22,9 @@ class Item(Resource):
             return {"message": "An item with name '{}' already exists".format(name)}, 400
 
         data = Item.parser.parse_args()
-        item = ItemModel(name, data['price'], data['store_id'])
+
+        # unpacked **data contains everything in dictionary (price and store_id)
+        item = ItemModel(name, **data)
 
         try:
             item.save_to_db()
@@ -53,4 +55,6 @@ class Item(Resource):
 
 class ItemList(Resource):
     def get(self):
-        return {'items': list(map(lambda x: x.json(), ItemModel.query.all()))}
+        # could return {'items': list(map(lambda x: x.json(), ItemModel.query.all()))}
+        # but list comprehensions are faster
+        return {'items': [x.json() for x in ItemModel.find_all()]}
