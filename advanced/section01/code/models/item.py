@@ -29,11 +29,13 @@ class ItemModel(db.Model):
         }
 
     @classmethod
-    def find_by_name(cls, name: str):
+    def find_by_name(cls, name: str) -> "ItemModel":
+        # using quotes evaluates ItemModel after file has been imported
+        # this is the way python recommends returning self-type
         return cls.query.filter_by(name=name).first()
 
     @classmethod
-    def find_all(cls) -> List:
+    def find_all(cls) -> List["ItemModel"]:
         return cls.query.all()
 
     def save_to_db(self) -> None:
