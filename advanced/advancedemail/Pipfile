@@ -7,14 +7,14 @@ verify_ssl = true
 
 [packages]
 flask = "*"
+requests = "*"
+python-dotenv = "*"
 flask-jwt-extended = "*"
 flask-restful = "*"
 flask-sqlalchemy = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
 marshmallow = "*"
-requests = "*"
-python-dotenv = "*"
 
 [requires]
 python_version = "3.8"

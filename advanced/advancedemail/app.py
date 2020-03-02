@@ -13,7 +13,7 @@ from resources.user import (
     User,
     TokenRefresh,
     UserLogout,
-    UserConfirm
+    UserConfirm,
 )
 from resources.item import Item, ItemList
 from resources.store import Store, StoreList
@@ -27,7 +27,9 @@ app.config["JWT_BLACKLIST_TOKEN_CHECKS"] = [
     "access",
     "refresh",
 ]  # allow blacklisting for access and refresh tokens
-app.secret_key = os.environ.get("APP_SECRET_KEY")  # could do app.config['JWT_SECRET_KEY'] if we prefer
+app.secret_key = os.environ.get(
+    "APP_SECRET_KEY"
+)  # could do app.config['JWT_SECRET_KEY'] if we prefer
 api = Api(app)
 
 

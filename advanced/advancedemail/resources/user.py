@@ -1,6 +1,6 @@
-import traceback # built into python
+import traceback
 from flask_restful import Resource
-from flask import request, make_response, render_template
+from flask import request, render_template, make_response
 from werkzeug.security import safe_str_cmp
 from flask_jwt_extended import (
     create_access_token,
@@ -21,11 +21,11 @@ USER_NOT_FOUND = "User not found."
 USER_DELETED = "User deleted."
 INVALID_CREDENTIALS = "Invalid credentials!"
 USER_LOGGED_OUT = "User <id={user_id}> successfully logged out."
-NOT_CONFIRMED_ERROR = "You have not confirmed registration, please check your email <{}>."
-USER_CONFIRMED = "User confirmed."
+NOT_CONFIRMED_ERROR = (
+    "You have not confirmed registration, please check your email <{}>."
+)
 FAILED_TO_CREATE = "Internal server error. Failed to create user."
-SUCCESS_REGISTER_MESSAGE = "Account created successfully.  An email with an activation link" \
-                           "has been sent to your email address.  Please check."
+SUCCESS_REGISTER_MESSAGE = "Account created successfully, an email with an activation link has been sent to your email address, please check."
 
 user_schema = UserSchema()
 
@@ -47,11 +47,12 @@ class UserRegister(Resource):
             user.send_confirmation_email()
             return {"message": SUCCESS_REGISTER_MESSAGE}, 201
         except MailGunException as e:
-            user.delete_from_db()
+            user.delete_from_db()  # rollback
             return {"message": str(e)}, 500
-        except:
+        except:  # failed to save user to db
             traceback.print_exc()
             return {"message": FAILED_TO_CREATE}, 500
+
 
 class User(Resource):
     @classmethod
@@ -76,7 +77,6 @@ class UserLogin(Resource):
     @classmethod
     def post(cls):
         user_json = request.get_json()
-        # tell schema to ignore email field if not present (can login w/ just username and password)
         user_data = user_schema.load(user_json, partial=("email",))
 
         user = UserModel.find_by_username(user_data.username)
@@ -85,8 +85,11 @@ class UserLogin(Resource):
             if user.activated:
                 access_token = create_access_token(identity=user.id, fresh=True)
                 refresh_token = create_refresh_token(user.id)
-                return {"access_token": access_token, "refresh_token": refresh_token}, 200
-            return{"message": NOT_CONFIRMED_ERROR.format(user.username)}, 400
+                return (
+                    {"access_token": access_token, "refresh_token": refresh_token},
+                    200,
+                )
+            return {"message": NOT_CONFIRMED_ERROR.format(user.email)}, 400
 
         return {"message": INVALID_CREDENTIALS}, 401
 
@@ -109,6 +112,7 @@ class TokenRefresh(Resource):
         new_token = create_access_token(identity=current_user, fresh=False)
         return {"access_token": new_token}, 200
 
+
 class UserConfirm(Resource):
     @classmethod
     def get(cls, user_id: int):
@@ -118,10 +122,8 @@ class UserConfirm(Resource):
 
         user.activated = True
         user.save_to_db()
-        # can use return redirect("http://localhost:3000", code=302) to redirect user to another URL
-
+        # return redirect("http://localhost:3000/", code=302)  # redirect if we have a separate web app
         headers = {"Content-Type": "text/html"}
-        # render_template assumes confirmation_page.html will be in templates directory that's in the same
-        # directory as app.py (section03)
-        return make_response(render_template("confirmation_page.html", email=user.username), 200, headers)
-
+        return make_response(
+            render_template("confirmation_page.html", email=user.email), 200, headers
+        )
